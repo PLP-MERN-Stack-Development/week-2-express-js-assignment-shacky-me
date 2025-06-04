@@ -1,0 +1,25 @@
+{
+  "name": "week-2-express-js-assignment-shacky-me",
+  "version": "1.0.0",
+  "description": "Building a RESTful API using Express.js that implements standard CRUD operations, proper routing, middleware implementation, and error handling.",
+  "homepage": "https://github.com/PLP-MERN-Stack-Development/week-2-express-js-assignment-shacky-me#readme",
+  "bugs": {
+    "url": "https://github.com/PLP-MERN-Stack-Development/week-2-express-js-assignment-shacky-me/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PLP-MERN-Stack-Development/week-2-express-js-assignment-shacky-me.git"
+  },
+  "license": "MIT",
+  "author": "Meshack Kigen",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "nodemon": "^3.1.10"
+  }
+}
