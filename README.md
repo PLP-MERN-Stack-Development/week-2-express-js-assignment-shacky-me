@@ -1,63 +1,30 @@
-[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-2e0aaae1b6195c2367325f4f02e2d04e9abb55f0b24a779b69b11b9e10269abc.svg)](https://classroom.github.com/online_ide?assignment_repo_id=19709137&assignment_repo_type=AssignmentRepo)
-# Express.js RESTful API Assignment
+# Express.js Products API
 
-This assignment focuses on building a RESTful API using Express.js, implementing proper routing, middleware, and error handling.
+A simple RESTful API built with Express.js for managing product data, including features like authentication, validation, error handling, filtering, pagination, and search.
 
-## Assignment Overview
+## Features
 
-You will:
-1. Set up an Express.js server
-2. Create RESTful API routes for a product resource
-3. Implement custom middleware for logging, authentication, and validation
-4. Add comprehensive error handling
-5. Develop advanced features like filtering, pagination, and search
+- **RESTful API:** Standard HTTP methods (GET, POST, PUT, DELETE) for product management.
+- **In-Memory Data Store:** Simple product data managed in an array (can be easily swapped for a database).
+- **Custom Logger Middleware:** Logs incoming request details to the console.
+- **JSON Body Parsing:** Handles JSON payloads in request bodies.
+- **API Key Authentication:** Secures API endpoints using an `X-API-Key` header.
+- **Product Validation:** Ensures data integrity for product creation and updates.
+- **Global Error Handling:** Centralized error management with custom error classes (e.g., `NotFoundError`, `ValidationError`).
+- **Query Parameters:** Filter products by `category`.
+- **Pagination:** Limit and offset product listings using `page` and `limit` parameters.
+- **Search:** Search products by `name` or `description` using a `searchTerm` parameter.
+- **Product Statistics:** Endpoint to get aggregated data like category counts and average price.
 
-## Getting Started
+**Install Node.js dependencies:**
+`bash
+    npm install
+    `
 
-1. Accept the GitHub Classroom assignment invitation
-2. Clone your personal repository that was created by GitHub Classroom
-3. Install dependencies:
-   ```
-   npm install
-   ```
-4. Run the server:
-   ```
-   npm start
-   ```
+## Usage
 
-## Files Included
+To start the API server:
 
-- `Week2-Assignment.md`: Detailed assignment instructions
-- `server.js`: Starter Express.js server file
-- `.env.example`: Example environment variables file
-
-## Requirements
-
-- Node.js (v18 or higher)
-- npm or yarn
-- Postman, Insomnia, or curl for API testing
-
-## API Endpoints
-
-The API will have the following endpoints:
-
-- `GET /api/products`: Get all products
-- `GET /api/products/:id`: Get a specific product
-- `POST /api/products`: Create a new product
-- `PUT /api/products/:id`: Update a product
-- `DELETE /api/products/:id`: Delete a product
-
-## Submission
-
-Your work will be automatically submitted when you push to your GitHub Classroom repository. Make sure to:
-
-1. Complete all the required API endpoints
-2. Implement the middleware and error handling
-3. Document your API in the README.md
-4. Include examples of requests and responses
-
-## Resources
-
-- [Express.js Documentation](https://expressjs.com/)
-- [RESTful API Design Best Practices](https://restfulapi.net/)
-- [HTTP Status Codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status) 
+```bash
+node app.js
+```
