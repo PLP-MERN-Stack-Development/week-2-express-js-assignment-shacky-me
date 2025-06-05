@@ -1,184 +1,140 @@
-// app.js
-
+// Task 1: Express.js Setup
 const express = require("express");
+const authenticate = require("./middleware/auth");
+const validateProduct = require("./middleware/productValidation");
+const NotFoundError = require("./errors/notFoundError");
+const ValidationError = require("./errors/validationError");
+const asyncHandler = require("./middleware/asyncHandler");
 const app = express();
-const port = 3000;
+const PORT = process.env.PORT || 3000;
 
-// --- Task 3: Middleware Implementations ---
+// Task 3: Middleware Setup
+const logger = require("./middleware/logger");
 
-// 1. Custom Logger Middleware
-const loggerMiddleware = (req, res, next) => {
-  const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${req.method} ${req.url}`);
-  next(); // Call next to pass control to the next middleware or route handler
-};
+app.use(logger); // Use the logger middleware for all routes
 
-// Use the custom logger middleware for all requests
-app.use(loggerMiddleware);
-
-// 2. Middleware to parse JSON request bodies
 app.use(express.json());
 
-// 3. Authentication Middleware (checks for an API key in headers)
-const authenticateApiKey = (req, res, next) => {
-  const apiKey = req.headers["x-api-key"]; // Common header for API keys
-  const validApiKey = "YOUR_SECRET_API_KEY"; // to be replaced with a real, secure API key in a production app
-
-  if (!apiKey) {
-    return res
-      .status(401)
-      .json({ message: "Authorization Required: API Key missing" });
-  }
-
-  if (apiKey !== validApiKey) {
-    return res.status(403).json({ message: "Forbidden: Invalid API Key" });
-  }
-
-  next(); // API Key is valid, proceed to the next middleware or route handler
-};
-
-// 4. Validation Middleware for Product Creation and Update
-const validateProduct = (req, res, next) => {
-  const { name, description, price, category, inStock } = req.body;
-
-  if (!name || typeof name !== "string" || name.trim().length === 0) {
-    return res.status(400).json({
-      message: "Product name is required and must be a non-empty string.",
-    });
-  }
-  if (
-    !description ||
-    typeof description !== "string" ||
-    description.trim().length === 0
-  ) {
-    return res.status(400).json({
-      message:
-        "Product description is required and must be a non-empty string.",
-    });
-  }
-  if (typeof price !== "number" || price <= 0) {
-    return res.status(400).json({
-      message: "Product price is required and must be a positive number.",
-    });
-  }
-  if (
-    !category ||
-    typeof category !== "string" ||
-    category.trim().length === 0
-  ) {
-    return res.status(400).json({
-      message: "Product category is required and must be a non-empty string.",
-    });
-  }
-  if (typeof inStock !== "boolean") {
-    return res.status(400).json({
-      message: "Product inStock status is required and must be a boolean.",
-    });
-  }
-
-  next(); // All validations passed, proceed
-};
-
-// In-memory "database" for products
+app.use("/api/products", authenticate); //applies to all routes starting with /api/products
+// Task 2: RESTful API Routes
+// In-memory data store for products
 let products = [
   {
     id: "1",
     name: "Laptop",
-    description: "Powerful laptop for coding and gaming",
+    description: "Powerful laptop for work and gaming",
     price: 1200,
     category: "Electronics",
     inStock: true,
   },
   {
     id: "2",
-    name: "Keyboard",
-    description: "Mechanical keyboard with RGB lighting",
-    price: 75,
-    category: "Peripherals",
+    name: "Mouse",
+    description: "Wireless optical mouse",
+    price: 25,
+    category: "Electronics",
     inStock: true,
   },
   {
     id: "3",
-    name: "Mouse",
-    description: "Ergonomic wireless mouse",
-    price: 50,
-    category: "Peripherals",
+    name: "Keyboard",
+    description: "Mechanical gaming keyboard",
+    price: 75,
+    category: "Electronics",
     inStock: false,
+  },
+  {
+    id: "4",
+    name: "Monitor",
+    description: "27-inch 4K display",
+    price: 300,
+    category: "Electronics",
+    inStock: true,
   },
 ];
 
-// Task 1: "Hello World" route
-app.get("/", (req, res) => {
-  res.send("Hello World! Welcome to the Products API.");
-});
-
-// --- Task 2: RESTful API Routes for products (with middleware applied) ---
-
-// Apply authentication middleware to all /api/products routes
-// For simplicity, we're applying it globally here. In a real app, you might apply it to specific routes.
-app.use("/api/products", authenticateApiKey);
-
-// GET /api/products: List all products
+//   Implement RESTful Routes
+// GET all products
 app.get("/api/products", (req, res) => {
   res.json(products);
 });
 
-// GET /api/products/:id: Get a specific product by ID
-app.get("/api/products/:id", (req, res) => {
-  const productId = req.params.id;
-  const product = products.find((p) => p.id === productId);
+// Refactor GET /api/products/:id with asyncHandler
+app.get(
+  "/api/products/:id",
+  authenticate,
+  asyncHandler(async (req, res, next) => {
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
-  if (product) {
-    res.json(product);
-  } else {
-    res.status(404).json({ message: "Product not found" });
-  }
-});
+    const { id } = req.params;
+    const product = products.find((p) => p.id === id);
 
-// POST /api/products: Create a new product (with validation middleware)
-app.post("/api/products", validateProduct, (req, res) => {
-  const newProduct = req.body;
-  // Generate a simple unique ID (in a real app, use a proper UUID generator)
-  newProduct.id = (products.length + 1).toString();
-  products.push(newProduct);
-  res.status(201).json(newProduct); // 201 Created
-});
-
-// PUT /api/products/:id: Update an existing product (with validation middleware)
-app.put("/api/products/:id", validateProduct, (req, res) => {
-  const productId = req.params.id;
-  const updatedProductData = req.body;
-  let productFound = false;
-
-  products = products.map((p) => {
-    if (p.id === productId) {
-      productFound = true;
-      return { ...p, ...updatedProductData, id: productId }; // Ensure ID remains the same
+    if (product) {
+      res.json(product);
+    } else {
+      throw new NotFoundError(`Product with ID ${id} not found`);
     }
-    return p;
-  });
+  })
+);
 
-  if (productFound) {
-    res.json(products.find((p) => p.id === productId));
-  } else {
-    res.status(404).json({ message: "Product not found" });
+// Refactor PUT /api/products/:id to use NotFoundError
+app.put(
+  "/api/products/:id",
+  authenticate,
+  validateProduct,
+  (req, res, next) => {
+    const { id } = req.params;
+    const { name, description, price, category, inStock } = req.body;
+
+    const productIndex = products.findIndex((p) => p.id === id);
+
+    if (productIndex !== -1) {
+      products[productIndex] = {
+        ...products[productIndex],
+        name: name !== undefined ? name : products[productIndex].name,
+        description:
+          description !== undefined
+            ? description
+            : products[productIndex].description,
+        price: price !== undefined ? price : products[productIndex].price,
+        category:
+          category !== undefined ? category : products[productIndex].category,
+        inStock:
+          inStock !== undefined ? inStock : products[productIndex].inStock,
+      };
+      res.json(products[productIndex]);
+    } else {
+      next(new NotFoundError(`Product with ID ${id} not found`)); // Use custom error
+    }
   }
-});
+);
 
-// DELETE /api/products/:id: Delete a product
-app.delete("/api/products/:id", (req, res) => {
-  const productId = req.params.id;
+// Refactor DELETE /api/products/:id to use NotFoundError
+app.delete("/api/products/:id", authenticate, (req, res, next) => {
+  const { id } = req.params;
   const initialLength = products.length;
-  products = products.filter((p) => p.id !== productId);
+  products = products.filter((p) => p.id !== id);
 
   if (products.length < initialLength) {
-    res.status(204).send(); // 204 No Content
+    res.status(204).send();
   } else {
-    res.status(404).json({ message: "Product not found" });
+    next(new NotFoundError(`Product with ID ${id} not found`)); // Use custom error
   }
 });
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Express.js server listening at http://localhost:${port}`);
+app.get("/", (req, res) => {
+  res.send("Hello, World!");
+});
+
+// Global error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.statusCode || 500).json({
+    message: err.message || "Something went wrong!",
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+  console.log(`Open your browser at http://localhost:${PORT}`);
 });
